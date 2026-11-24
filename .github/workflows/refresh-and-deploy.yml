@@ -1,0 +1,63 @@
+# Fetches the public Taskmarket API on the runner, rebuilds the static site,
+# audits it, and publishes it to GitHub Pages.
+#
+# Runs every 20 minutes, so the published data stays well inside the
+# "refreshed at least hourly" requirement even when a scheduled run is late
+# or one is skipped. If the fetch, the build or the audit fails, nothing is
+# deployed and the last good version stays up.
+#
+# One-time setup: Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+name: Refresh data and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '7,27,47 * * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Install, build and audit
+        env:
+          # Set a repository variable SITE_URL to override (for a custom domain).
+          SITE_URL: ${{ vars.SITE_URL || steps.pages.outputs.base_url }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: npm ci && npm run build && npm run check -- --max-age-min=30
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

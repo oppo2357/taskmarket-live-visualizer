@@ -1,0 +1,22 @@
+{
+  "name": "taskmarket-live-visualizer",
+  "version": "1.0.0",
+  "description": "Open-source, read-only visualizer of the public Taskmarket API across Tempo (OUSD) and Base (USDC). Static site, server-fetched data, hourly refresh.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "fetch": "node scripts/fetch-data.mjs",
+    "build": "node scripts/build.mjs",
+    "build:offline": "node scripts/build.mjs --offline",
+    "og": "node scripts/generate-og.mjs",
+    "check": "node scripts/check.mjs",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

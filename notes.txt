@@ -1,0 +1,67 @@
+Taskmarket live market visualizer
+Entry for TSK-BRK611AN
+
+LIVE URL
+https://oppo2357.github.io/taskmarket-live-visualizer/
+
+REPO URL
+https://github.com/oppo2357/taskmarket-live-visualizer
+
+VIEWS (each has its own URL and its own share card)
+/                 Overview: headline numbers, swarm convergence field, time series, mode and status
+/flows/           Escrow flow river (posting wallets -> outcomes -> winning wallets), tasks that died, window and past-deadline queue
+/concentration/   Distinct task posters per week, Lorenz curve and Gini, top posting wallets
+/chains/          Tempo against Base
+/activity/        Activity heatmap, live feed, methods note
+
+STACK
+- Static site: plain HTML, CSS and ES modules. No framework, no bundler.
+- Charts: hand-written SVG and HTML. No chart library.
+- Build: Node 20+ scripts. One dependency, @resvg/resvg-js, used at build time to draw the share cards.
+- Hosting: GitHub Pages, built and deployed by GitHub Actions.
+- Also included: a zero-dependency Node server (server.mjs), a Dockerfile and vercel.json.
+- Fonts: Instrument Serif, Inter Tight, Departure Mono, self-hosted (94 KB in all).
+- No wallet connection, no cookies, no analytics, no third-party requests of any kind.
+
+ENDPOINTS USED
+Base URL https://api.taskmarket.dev, for chainId=4217 (Tempo) and chainId=8453 (Base).
+1. /api/market/stats?chainId=...
+2. /api/stats/breakdowns?chainId=...
+3. /api/stats/platform-time-series?chainId=...&range=7d|30d|90d|all&bucket=day|week
+4. /api/stats/activity-heatmap?chainId=...&range=7d|30d|90d|all&dimension=hourOfWeek|mode
+5. /api/stats/activity-feed?chainId=...&limit=50&cursor=...
+6. /api/tasks?chainId=...&status=...&sort=newest&limit=100&cursor=...
+
+HOW AND HOW OFTEN IT REFRESHES
+- The data is fetched on the server, never in the browser. A check in the build fails if the API address appears in browser code.
+- GitHub Actions runs every 20 minutes (cron: 7,27,47 * * * *), and on every push. Each run fetches the API, rebuilds the whole site, audits it and deploys it.
+- If a fetch or a check fails, nothing is deployed and the last good version stays up.
+- Cache: GitHub Pages serves every file with a ten-minute cache header. The bundled server sends max-age=300 with stale-while-revalidate=60 for pages and data, and max-age=86400 for fonts and brand images.
+- Every page shows "Data as of YYYY-MM-DD HH:MM UTC": the moment the fetch finished.
+- Self-hosted with server.mjs or Docker, the server refetches and rebuilds every 60 minutes and swaps the new build in without dropping requests.
+
+DEPLOY COMMAND
+GitHub Pages (as hosted):
+  git push origin main
+  One-time setting: Settings -> Pages -> Source: GitHub Actions.
+Any machine with Node 20+:
+  npm ci && npm start
+Docker:
+  docker build -t taskmarket-visualizer . && docker run -p 8080:8080 -e SITE_URL=https://your.domain taskmarket-visualizer
+Vercel:
+  npx vercel deploy --prod
+Static files only:
+  npm ci && npm run build      (upload dist/)
+
+CHECKING THE NUMBERS
+- Every number comes from the six endpoints above. The methods note is at /activity/#methods.
+- /data/market.json holds the full computed dataset. /data/verify.json holds the checks run on each build and ten audit recipes: a value on the site and the request that reproduces it.
+- Headline numbers the API reports identically for both chain ids are platform-wide; they are shown once and never summed. paidWorkers and activeWallets differ by chain and are shown side by side.
+- The task list is paged to the end for both chains and de-duplicated by id. The breakdown counts every task on the platform, and the public list can hold fewer. The exact counts for both, and the difference per status and mode, are stated in the methods note and in verify.json. Unlisted tasks are counted wherever the breakdown is shown and left out of anything computed from the task list. Nothing is estimated.
+- Wallets are shown as truncated hex only. Display names, descriptions and tags are dropped at fetch time.
+
+FOOTER
+"Made for a paid Taskmarket bounty (TSK-BRK611AN). Not an official Taskmarket product."
+
+LICENCE
+MIT.
