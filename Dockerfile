@@ -1,7 +1,8 @@
 # Taskmarket live market visualizer: one container, no other services.
 #
 #   docker build -t taskmarket-visualizer .
-#   docker run -p 8080:8080 -e SITE_URL=https://your.domain taskmarket-visualizer
+#   docker run -p 8080:8080 taskmarket-visualizer
+#   (Optional: pass -e SITE_URL=https://<public-host> to point canonical and OG URLs at a custom HTTPS domain.)
 #
 # On start the server fetches the public Taskmarket API, builds the static
 # site, serves it from memory and rebuilds every hour (REFRESH_INTERVAL_MS).

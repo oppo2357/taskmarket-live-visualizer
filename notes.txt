@@ -47,7 +47,7 @@ GitHub Pages (as hosted):
 Any machine with Node 20+:
   npm ci && npm start
 Docker:
-  docker build -t taskmarket-visualizer . && docker run -p 8080:8080 -e SITE_URL=http://localhost:8080 taskmarket-visualizer
+  docker build -t taskmarket-visualizer . && docker run -p 8080:8080 taskmarket-visualizer
 Vercel:
   npx vercel deploy --prod
 Static files only:

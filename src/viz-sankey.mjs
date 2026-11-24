@@ -32,9 +32,12 @@ export function flowRiver(root, d) {
       ...s.linksIn.map(([p, g, usd, n]) => ({ from: s.posters[p].label, to: s.gates[g].label, usd, n })),
       ...s.linksOut.map(([g, w, usd, n]) => ({ from: s.gates[g].label, to: s.winners[w].label, usd, n })),
     ];
+    const roundNote = Math.round(s.check.netWorkerPaidUsd * 100) + Math.round(s.check.platformFeesUsd * 100) !== Math.round(s.check.paidUsd * 100)
+      ? ' (exact in 6-decimal micro-units; 2-decimal display figures round independently)'
+      : '';
     const feeLine = s.check.platformFeesUsd > 0
-      ? `Net to workers: ${fmtUsd(s.check.netWorkerPaidUsd)} plus ${fmtUsd(s.check.platformFeesUsd)} in platform fees, equal to gross Completed (${fmtUsd(s.check.paidUsd)}). `
-      : `Net to workers: ${fmtUsd(s.check.netWorkerPaidUsd)} (no platform fees on this chain), equal to Completed (${fmtUsd(s.check.paidUsd)}). `;
+      ? `Net to workers: ${fmtUsd(s.check.netWorkerPaidUsd)} plus ${fmtUsd(s.check.platformFeesUsd)} in platform fees, matching gross Completed (${fmtUsd(s.check.paidUsd)})${roundNote}. `
+      : `Net to workers: ${fmtUsd(s.check.netWorkerPaidUsd)} (no platform fees on this chain), matching Completed (${fmtUsd(s.check.paidUsd)}). `;
     foot.append(
       h('p', { class: 'note' },
         h('b', { text: 'It reconciles. ' }),
