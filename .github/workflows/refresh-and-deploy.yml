@@ -1,7 +1,7 @@
 # Fetches the public Taskmarket API on the runner, rebuilds the static site,
 # audits it, and publishes it to GitHub Pages.
 #
-# Runs every 20 minutes, so the published data stays well inside the
+# Runs every 15 minutes, so the published data stays well inside the
 # "refreshed at least hourly" requirement even when a scheduled run is late
 # or one is skipped. If the fetch, the build or the audit fails, nothing is
 # deployed and the last good version stays up.
@@ -14,7 +14,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '7,27,47 * * * *'
+    - cron: '*/15 * * * *'
 
 permissions:
   contents: read

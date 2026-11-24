@@ -48,7 +48,7 @@ Pass `-e SITE_URL=https://<your-public-https-origin>` when hosting behind a cust
 git push origin main
 ```
 
-Once, in the repository: Settings, Pages, Source: GitHub Actions. The workflow in `.github/workflows/refresh-and-deploy.yml` then fetches, builds, audits and deploys on every push and every 20 minutes.
+Once, in the repository: Settings, Pages, Source: GitHub Actions. The workflow in `.github/workflows/refresh-and-deploy.yml` then fetches, builds, audits and deploys on every push and every 15 minutes.
 
 **Vercel**
 
@@ -104,7 +104,7 @@ The API does not allow browser requests from other sites. Nothing in the browser
 
 ### Refresh and cache
 
-- GitHub Actions rebuilds and redeploys every 20 minutes (`cron: 7,27,47 * * * *`).
+- GitHub Actions rebuilds and redeploys every 15 minutes (`cron: */15 * * * *`).
 - `server.mjs` rebuilds every 60 minutes on its own, loads the new build into memory and swaps it in with one assignment, so a refresh does not interrupt requests.
 - `server.mjs` sends `Cache-Control: public, max-age=300, stale-while-revalidate=60` for pages and data, and `max-age=86400` for fonts and brand images. GitHub Pages sends its own ten-minute cache header.
 - Every page shows "Data as of" with the time the fetch finished, in UTC.
