@@ -238,7 +238,7 @@ function methods(m, v, repoUrl) {
 
     <h3>Refresh and cache</h3>
     <ul>
-      <li><b>Refresh:</b> a scheduled GitHub Actions workflow fetches the API and rebuilds the whole site (<code>cron: */15 * * * *</code> plus a companion 20-minute watchdog triggering <code>workflow_dispatch</code> while the maintainer's host is online whenever the snapshot is older than 12 minutes). The bundled Node server does the same on its own every 60 minutes. The "data as of" time on every page always shows the exact UTC finish time of the last successful fetch.</li>
+      <li><b>Refresh:</b> a scheduled GitHub Actions workflow fetches the API and rebuilds the whole site (configured with <code>cron: */15 * * * *</code> plus a companion 20-minute watchdog triggering <code>workflow_dispatch</code> while the maintainer's logged-in host is online whenever the snapshot is older than 12 minutes). Self-hosting with <code>npm start</code> or Docker runs the bundled Node server on its own independent 60-minute loop. The "data as of" time on every page always shows the exact UTC finish time of the last successful fetch.</li>
       <li><b>Cache:</b> the bundled server sends <code>Cache-Control: public, max-age=300, stale-while-revalidate=60</code> for pages and data and <code>max-age=86400</code> for fonts and brand images. GitHub Pages sends its own ten-minute cache header.</li>
       <li><b>Fail closed:</b> if a fetch fails or the checks below do not pass, the build stops and the last good version stays up.</li>
     </ul>

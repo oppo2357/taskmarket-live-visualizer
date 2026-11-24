@@ -48,7 +48,7 @@ Pass `-e SITE_URL=https://<your-public-https-origin>` when hosting behind a cust
 git push origin main
 ```
 
-Once, in the repository: Settings, Pages, Source: GitHub Actions. The workflow in `.github/workflows/refresh-and-deploy.yml` then fetches, builds, audits and deploys on every push and every 15 minutes.
+Once, in the repository: Settings, Pages, Source: GitHub Actions. The workflow in `.github/workflows/refresh-and-deploy.yml` then fetches, builds, audits and deploys on every push and on its configured 15-minute schedule (subject to GitHub Actions cron queue timing).
 
 **Vercel**
 
