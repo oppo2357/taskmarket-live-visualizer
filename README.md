@@ -37,8 +37,10 @@ Open http://localhost:8080. On first start the server fetches the API and builds
 **Docker**
 
 ```sh
-docker build -t taskmarket-visualizer . && docker run -p 8080:8080 -e SITE_URL=https://your.domain taskmarket-visualizer
+docker build -t taskmarket-visualizer . && docker run -p 8080:8080 -e SITE_URL=http://localhost:8080 taskmarket-visualizer
 ```
+
+Set `SITE_URL` to your public HTTPS origin when deploying behind a domain.
 
 **GitHub Pages**
 

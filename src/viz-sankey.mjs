@@ -29,17 +29,20 @@ export function flowRiver(root, d) {
         h('div', { class: 's', text: `${fmtInt(g.tasks)} tasks · ${fmtPct(s.totalUsd ? (g.usd / s.totalUsd) * 100 : 0)}` })));
     }
     const rows = [
-      ...s.linksIn.map(([p, g, usd, n]) => ({ from: s.posters[p].addr || s.posters[p].label, to: s.gates[g].label, usd, n })),
-      ...s.linksOut.map(([g, w, usd, n]) => ({ from: s.gates[g].label, to: s.winners[w].addr || s.winners[w].label, usd, n })),
+      ...s.linksIn.map(([p, g, usd, n]) => ({ from: s.posters[p].label, to: s.gates[g].label, usd, n })),
+      ...s.linksOut.map(([g, w, usd, n]) => ({ from: s.gates[g].label, to: s.winners[w].label, usd, n })),
     ];
+    const feeLine = s.check.platformFeesUsd > 0
+      ? `Net to workers: ${fmtUsd(s.check.netWorkerPaidUsd)} plus ${fmtUsd(s.check.platformFeesUsd)} in platform fees, equal to gross Completed (${fmtUsd(s.check.paidUsd)}). `
+      : `Net to workers: ${fmtUsd(s.check.netWorkerPaidUsd)} (no platform fees on this chain), equal to Completed (${fmtUsd(s.check.paidUsd)}). `;
     foot.append(
       h('p', { class: 'note' },
         h('b', { text: 'It reconciles. ' }),
-        `Posted: ${fmtUsd(s.check.postersUsd)}. Outcomes: ${fmtUsd(s.check.gatesUsd)}. Both equal the ${fmtUsd(s.totalUsd)} put up in ${fmtInt(s.totalTasks)} public tasks by ${fmtInt(s.posterWallets)} wallets. Won: ${fmtUsd(s.check.winnersUsd)}, equal to Paid. Widths are task rewards by task status, read from the task list; they are not on-chain transfers. A task with several winners is drawn as one split, because the list names only its primary award.`),
+        `Posted: ${fmtUsd(s.check.postersUsd)}. Outcomes: ${fmtUsd(s.check.gatesUsd)}. Both equal the ${fmtUsd(s.totalUsd)} put up in ${fmtInt(s.totalTasks)} public tasks by ${fmtInt(s.posterWallets)} wallets. ${feeLine}Winner shares use each completed task's netReward (after platformFeeBps); multi-winner tasks are drawn as one split because the list names only the primary award.`),
       tableView('Table view of every flow', [
         { label: 'From', get: (r) => r.from },
         { label: 'To', get: (r) => r.to },
-        { label: 'Reward', get: (r) => r.usd, fmt: fmtUsd },
+        { label: 'Amount', get: (r) => r.usd, fmt: fmtUsd },
         { label: 'Tasks', get: (r) => r.n, fmt: fmtInt },
       ], rows));
   }
@@ -105,7 +108,8 @@ export function flowRiver(root, d) {
       offMout[g] = (offMout[g] || 0) + w;
       const ty = R[wi].y + offR[wi] + w / 2;
       offR[wi] += w;
-      ribbon(xM + nw, sy, xR, ty, w, 'paid', COLOR.cream, { a: `M${g}`, b: `R${wi}`, title: `${gate.label} → ${s.winners[wi].label}`, usd, n });
+      const isFee = !!s.winners[wi].isFee;
+      ribbon(xM + nw, sy, xR, ty, w, isFee ? 'progress' : 'paid', isFee ? COLOR.muted : COLOR.cream, { a: `M${g}`, b: `R${wi}`, title: `${gate.label} → ${s.winners[wi].label}`, usd, n });
     }
 
     // nodes + labels
@@ -129,7 +133,7 @@ export function flowRiver(root, d) {
       if (showText) {
         const y = above ? n.y - 7 : n.y + Math.max(1.5, n.h) / 2 + 3.5;
         const t = svg('text', { class: 'halo val', x: labelX, y: y.toFixed(1), 'text-anchor': anchor });
-        t.append(svg('tspan', { class: n.addr ? '' : 'lbl' }, small ? n.label.replace('Other single-winner wallets', 'Other winners').replace('Multi-winner splits', 'Multi-winner').replace('Rest of posters', 'Others') : n.label));
+        t.append(svg('tspan', { class: n.addr ? '' : 'lbl' }, small ? n.label.replace('Other single-winner wallets', 'Other winners').replace('Multi-winner splits', 'Multi-winner').replace('Rest of posters', 'Others').replace('Platform fees', 'Fees') : n.label));
         if (!small) t.append(svg('tspan', { dx: 8, fill: COLOR.muted }, fmtUsd(n.usd)));
         labels.push({ id, node: t });
         labelG.append(t);
@@ -137,7 +141,7 @@ export function flowRiver(root, d) {
     };
     L.forEach((n, i) => addNode(`L${i}`, n, xL, COLOR.muted, xL + nw + 6, 'start', false));
     M.forEach((n) => addNode(`M${n.i}`, n, xM, n.key === 'died' ? COLOR.line : OUTCOME_COLOR[n.key], xM + nw / 2, 'middle', true));
-    R.forEach((n, i) => addNode(`R${i}`, n, xR, COLOR.cream, xR - 6, 'end', false));
+    R.forEach((n, i) => addNode(`R${i}`, n, xR, n.isFee ? COLOR.muted : COLOR.cream, xR - 6, 'end', false));
     // died gate needs an outline to read against the panel
     M.filter((g) => g.key === 'died').forEach((g) => nodeG.append(svg('rect', { x: xM + 0.5, y: (g.y + 0.5).toFixed(1), width: nw - 1, height: Math.max(1, g.h - 1).toFixed(1), rx: 2, fill: 'none', stroke: COLOR.muted, 'pointer-events': 'none' })));
 

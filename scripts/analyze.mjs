@@ -189,19 +189,25 @@ function buildSankey(tasks) {
     }
   });
 
-  // Right side: only paid escrow moves on to a winner.
+  // Right side: paid escrow splits into net worker payouts (netReward) and platform fees (reward - netReward).
   const winMap = new Map();
   const multi = { addr: null, label: 'Multi-winner splits', wallets: null, usdMicro: 0, tasks: 0 };
   const unknown = { addr: null, label: 'Winner not listed', wallets: null, usdMicro: 0, tasks: 0 };
+  const fees = { addr: null, label: 'Platform fees', wallets: null, usdMicro: 0, tasks: 0, isFee: true };
+  let netPaidMicro = 0;
   for (const t of tasks) {
     if (outcomeOf(t) !== 'paid') continue;
-    const m = micro(t.reward);
-    if (t.awardCount > 1) { multi.usdMicro += m; multi.tasks++; continue; }
+    const gross = micro(t.reward);
+    const net = t.netReward != null ? Math.min(gross, micro(t.netReward)) : gross;
+    const fee = Math.max(0, gross - net);
+    netPaidMicro += net;
+    if (fee > 0) { fees.usdMicro += fee; fees.tasks++; }
+    if (t.awardCount > 1) { multi.usdMicro += net; multi.tasks++; continue; }
     const a = lower(t.primaryAward?.workerAddress);
-    if (t.awardCount !== 1 || !a) { unknown.usdMicro += m; unknown.tasks++; continue; }
+    if (t.awardCount !== 1 || !a) { unknown.usdMicro += net; unknown.tasks++; continue; }
     let w = winMap.get(a);
     if (!w) winMap.set(a, (w = { addr: a, usdMicro: 0, tasks: 0 }));
-    w.usdMicro += m; w.tasks++;
+    w.usdMicro += net; w.tasks++;
   }
   const wRanked = [...winMap.values()].sort((x, y) => y.usdMicro - x.usdMicro || y.tasks - x.tasks || (x.addr < y.addr ? -1 : 1));
   const winners = wRanked.slice(0, TOP_N).map((w) => ({ addr: w.addr, label: shortHex(w.addr), wallets: 1, usdMicro: w.usdMicro, tasks: w.tasks }));
@@ -209,6 +215,7 @@ function buildSankey(tasks) {
   if (wRest.length) winners.push({ addr: null, label: 'Other single-winner wallets', wallets: wRest.length, usdMicro: sum(wRest, (w) => w.usdMicro), tasks: sum(wRest, (w) => w.tasks) });
   if (multi.tasks) winners.push(multi);
   if (unknown.tasks) winners.push(unknown);
+  if (fees.usdMicro > 0) winners.push(fees);
   const paidIdx = gateIndex.paid;
   const linksOut = winners.map((w, wi) => [paidIdx, wi, w.usdMicro, w.tasks]);
 
@@ -218,6 +225,8 @@ function buildSankey(tasks) {
     gatesUsd: usd(sum(gates, (g) => g.usdMicro)),
     linksInUsd: usd(sum(linksIn, (l) => l[2])),
     paidUsd: usd(gates[paidIdx].usdMicro),
+    netWorkerPaidUsd: usd(netPaidMicro),
+    platformFeesUsd: usd(fees.usdMicro),
     winnersUsd: usd(sum(winners, (w) => w.usdMicro)),
     linksOutUsd: usd(sum(linksOut, (l) => l[2])),
   };

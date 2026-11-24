@@ -76,6 +76,8 @@ function trimTask(t) {
     referenceCode: t.referenceCode,
     requester: t.requester,
     reward: t.reward,
+    netReward: t.netReward ?? t.reward,
+    platformFeeBps: t.platformFeeBps ?? 0,
     createdAt: t.createdAt,
     expiryTime: t.expiryTime,
     status: t.status,
