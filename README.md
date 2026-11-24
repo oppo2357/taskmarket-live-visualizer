@@ -104,7 +104,7 @@ The API does not allow browser requests from other sites. Nothing in the browser
 
 ### Refresh and cache
 
-- GitHub Actions rebuilds and redeploys every 15 minutes (`cron: */15 * * * *`).
+- GitHub Actions rebuilds and redeploys via `.github/workflows/refresh-and-deploy.yml` (`schedule: cron: */15 * * * *` + `workflow_dispatch`), backed on the hosted instance by an automated 20-minute watchdog trigger whenever the live snapshot exceeds 25 minutes old so GitHub's scheduled cron jitter never lets data drift past an hour.
 - `server.mjs` rebuilds every 60 minutes on its own, loads the new build into memory and swaps it in with one assignment, so a refresh does not interrupt requests.
 - `server.mjs` sends `Cache-Control: public, max-age=300, stale-while-revalidate=60` for pages and data, and `max-age=86400` for fonts and brand images. GitHub Pages sends its own ten-minute cache header.
 - Every page shows "Data as of" with the time the fetch finished, in UTC.

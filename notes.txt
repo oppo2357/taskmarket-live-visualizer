@@ -34,7 +34,7 @@ Base URL https://api.taskmarket.dev, for chainId=4217 (Tempo) and chainId=8453 (
 
 HOW AND HOW OFTEN IT REFRESHES
 - The data is fetched on the server, never in the browser. A check in the build fails if the API address appears in browser code.
-- GitHub Actions runs every 15 minutes (cron: */15 * * * *), and on every push. Each run fetches the API, rebuilds the whole site, audits it and deploys it.
+- GitHub Actions workflow (.github/workflows/refresh-and-deploy.yml) is configured with schedule (cron: */15 * * * *), push, and workflow_dispatch. Because GitHub's free scheduled cron queue can delay or skip runs on public repos, an automated 20-minute watchdog also triggers workflow_dispatch whenever the published snapshot is older than 25 minutes. Each run fetches the API, rebuilds the whole site, audits it and deploys it.
 - If a fetch or a check fails, nothing is deployed and the last good version stays up.
 - Cache: GitHub Pages serves every file with a ten-minute cache header. The bundled server sends max-age=300 with stale-while-revalidate=60 for pages and data, and max-age=86400 for fonts and brand images.
 - Every page shows "Data as of YYYY-MM-DD HH:MM UTC": the moment the fetch finished.
